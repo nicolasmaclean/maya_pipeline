@@ -1,0 +1,13 @@
+{
+    "formulas": {
+        "d_logs": "|code|/logs",
+        "f_log": "|d_logs|/|user|/|name|",
+        "f_log_report": "|d_logs|/report.md",
+
+        "d_asset_library": "|config|/asset_library",
+        "f_asset_catalog": "|d_asset_library|/catalog.json"
+    },
+    "formula_prefixes": [
+        "d", "f"
+    ]
+}
