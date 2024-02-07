@@ -116,8 +116,8 @@ def version_file():
         return None
 
     # save to new file
-    cmds.file(rename=path_new)
     cmds.file(save=True)
+    cmds.file(rename=path_new)
     log(f'Saved new version to {path_new}')
 
     # slip in reference fixing
