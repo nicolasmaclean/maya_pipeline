@@ -18,6 +18,7 @@
 # Built-in
 import json
 import os
+import shutil
 
 # 3rd Party
 try:
@@ -80,28 +81,80 @@ def increment_version_path(path, delta=1):
             version = int(path_split[-2]) + delta
             path_split = path_split[:-2] + path_split[-1:]
         except ValueError:
-            pass
+            if path_split[-2] == 'active':
+                path_split = path_split[:-2] + path_split[-1:]
 
     # get new file name
     path_split.insert(-1, f'{version:04}')
     return '.'.join(path_split)
 
 
-def get_version_path(path, version):
+def get_version(path):
+    path_split = path.split('.')
+    if len(path_split) <= 1:
+        return None
+
+    if len(path_split) > 2:
+        try:
+            return int(path_split[-2])
+        except ValueError:
+            pass
+
+    return None
+
+
+def get_versions(path):
     path_split = path.split('.')
     if len(path_split) <= 1:
         log(f'path is wack!!!', level=Level.ERROR)
         return None
 
-    if len(path_split) < 2:
+    if len(path_split) > 2:
+        try:
+            path_split = path_split[:-2] + path_split[-1:]
+        except ValueError:
+            pass
+    path = '.'.join(path_split)
+
+    versions = []
+    for entry in os.scandir(os.path.dirname(path)):
+        if not entry.is_file():
+            continue
+
+        version = get_version(entry.name)
+        if version is not None:
+            versions.append((entry.path, version))
+
+    return versions
+
+
+def get_latest_version(path):
+    versions = get_versions(path)
+    if not versions:
+        return None
+
+    latest = versions[0]
+    for version in versions:
+        if version[1] > latest[1]:
+            latest = version
+    return latest[0]
+
+
+def get_active_path(path):
+    path_split = path.split('.')
+    if len(path_split) <= 1:
+        log(f'path is wack!!!', level=Level.ERROR)
+        return None
+
+    if len(path_split) > 2:
         try:
             path_split = path_split[:-2] + path_split[-1:]
         except ValueError:
             pass
 
     # get new file name
-    path_split.insert(-1, f'{version:04}')
-    path_new = '.'.join(path_split)
+    path_split.insert(-1, 'active')
+    return '.'.join(path_split)
 
 
 def version_file():
@@ -110,19 +163,36 @@ def version_file():
         log(f'the scene needs to be saved before it can be versioned.', level=Level.ERROR)
         return None
 
-    # get current version number
-    path_new = increment_version_path(path_file)
-    if path_new is None:
-        return None
+    # get active and version path
+    path_active = get_active_path(path_file)
+    path_version = get_latest_version(path_file)
+    if not path_version:
+        path_version = path_active
+    path_version = increment_version_path(path_version)
 
-    # save to new file
+    # save active file
+    cmds.file(rename=path_active)
     cmds.file(save=True)
-    cmds.file(rename=path_new)
-    log(f'Saved new version to {path_new}')
 
     # slip in reference fixing
     foolproof_paths(notify=False)
     cmds.file(save=True)
 
+    # save a version too
+    shutil.copy(path_active, path_version)
+    log(f'Saved active to {path_active} and version to {path_version}')
     return True
 #endregion
+
+
+def main():
+    path_file = 'C:/Users/Nick/Box/Capstone_Uploads/05_Surfacing/SceneUploads/Warehouse.active.ma'
+    path_active = get_active_path(path_file)
+    path_version = get_latest_version(path_file)
+    if not path_version:
+        path_version = path_active
+    path_version = increment_version_path(path_version)
+
+
+if __name__ == '__main__':
+    main()
