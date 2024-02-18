@@ -1,0 +1,182 @@
+//////////////////////////////////////////////////////
+//kfAnimTransfer
+//////////////////////////
+//Written by Kiel Figgins
+//www.3dfiggins.com
+//////////////////////////
+//Use to pull transfer the keys from one object or hierarchy to another
+//////////////////////////
+//Version History
+//////////////////////////
+//1.00 (12-06-2011) - Original version
+//////////////////////////
+//Coming Soon
+/*
+
+*/
+
+
+
+global proc kfAnimTransfer()
+{
+
+if (`window -q -ex kfAnimTransferWin`)
+        {
+        showWindow kfAnimTransferWin ;
+        return ;
+        }
+
+
+window -w 230 -h 600 -t "Anim Transfer" -tlb true kfAnimTransferWin ;
+formLayout mainSaveForm ;
+
+//UI pieces
+text -l "Select the object / top of the hierarchy to transfer from," txAT_Instruct1;
+text -l "Then select the object / top of the hiearchies to transfer to:" txAT_Instruct2;
+button -l "Transfer Keys (Object)" -w 140 -ann "" -c ("kfAT_Obj();") btnAT_Obj;
+button -l "Transfer Keys (Hierarchy)" -w 140 -ann "" -c ("kfAT_Hier();") btnAT_Hier;
+
+//UI FormLayout
+formLayout -e
+
+        -af txAT_Instruct1 "top" 8
+        -an txAT_Instruct1 "bottom"
+        -af txAT_Instruct1 "left" 5
+        -an txAT_Instruct1 "right"
+
+        -ac txAT_Instruct2 "top" 8 txAT_Instruct1
+        -an txAT_Instruct2 "bottom"
+        -af txAT_Instruct2 "left" 5
+        -an txAT_Instruct2 "right"
+
+        -ac btnAT_Obj "top" 8 txAT_Instruct2
+        -an btnAT_Obj "bottom"
+        -af btnAT_Obj "left" 5
+        -an btnAT_Obj "right"
+
+        -ac btnAT_Hier "top" 8 txAT_Instruct2
+        -an btnAT_Hier "bottom"
+        -ac btnAT_Hier "left" 5 btnAT_Obj
+        -an btnAT_Hier "right"
+
+        mainSaveForm ;
+
+    showWindow kfAnimTransferWin ;
+
+    //Resize the main window
+    window -e -widthHeight 295 80 kfAnimTransferWin;
+
+}//end of proc kfAnimTransfer
+
+////////////////////
+//UI Specific Procs
+
+
+//////////////////////////////////////////////////
+global proc kfAT_Obj()
+{
+    string $sel[] = `ls -sl`;
+
+    if(`size($sel)` > 1)
+    {
+        select $sel[0];
+        string $copySel[] = `ls -sl`;
+
+        select $sel;
+        select -tgl $copySel[0];
+        string $pasteSel[] = `ls -sl`;
+
+        copyKey $copySel[0];
+
+        int $counter;
+        int $sizer = `size($pasteSel)`;
+        for ($counter = 0; $counter < $sizer; $counter++)
+        {
+            pasteKey -option replaceCompletely -copies 1 -connect 1 -timeOffset 0 -floatOffset 0 -valueOffset 0 {$pasteSel[($counter)]};
+        }//End of copy all keys loop
+    }//end of if enough is selected
+    else
+    {
+        print "\n\nFAIL: Please select at least 2 Objects\n\n";
+    }
+}//end of global proc
+
+
+
+
+
+//////////////////////////////////////////////////
+global proc kfAT_Hier()
+{
+    string $sel[] = `ls -sl`;
+
+    if(`size($sel)` > 1)
+    {
+        select $sel[0];
+        string $initHierObj[] = `ls -sl`;
+
+        select $sel;
+        select -tgl $initHierObj[0];
+        string $goalHierObj[] = `ls -sl`;
+
+        //Find out just the goal name space
+        string $justName = `match "[^:]*$" $initHierObj[0]`;
+        int $refNameSize = size($justName);
+        int $fullRefNameSize = size($initHierObj[0]);
+        string $nameSpaceInit = startString ($initHierObj[0], ($fullRefNameSize - $refNameSize));
+
+        int $counterg;
+        int $sizerg = `size($goalHierObj)`;
+        for ($counterg = 0; $counterg < $sizerg; $counterg++)
+        {
+            //Find out just the goal name space
+            string $justName = `match "[^:]*$" $goalHierObj[$counterg]`;
+            int $refNameSize = size($justName);
+            int $fullRefNameSize = size($goalHierObj[$counterg]);
+            string $nameSpaceGoal = startString ($goalHierObj[$counterg], ($fullRefNameSize - $refNameSize));
+
+            select $initHierObj;
+            select -hi;
+            string $allInit[] = `ls -sl`;
+
+            select -cl;
+
+            //loop through all init objects
+            int $counter;
+            int $sizer = `size($allInit)`;
+
+            for ($counter = 0; $counter < $sizer; $counter++)
+            {
+                string $goalTest;
+
+                if ($nameSpaceInit != "" || $nameSpaceGoal != "")
+                {
+                    $goalTest = `substituteAllString $allInit[$counter] $nameSpaceInit $nameSpaceGoal`;
+                }
+
+                if(`objExists $goalTest`)
+                {
+                    string $anyDups[] = `ls $goalTest`;
+
+                    select $anyDups[0];
+                    string $goalObj[] = `ls -sl`;
+
+                    int $anyKeys = `keyframe -q -kc $allInit[$counter]`;
+
+                    if($anyKeys != 0)
+                    {
+                        copyKey $allInit[$counter];
+                        pasteKey -option replaceCompletely -copies 1 -connect 1 -timeOffset 0 -floatOffset 0 -valueOffset 0 $goalObj;
+                    }//end of if any keys to paste
+                }//end of if goal Obj exists
+            }//end of for loop through all goal objects
+
+            print ("\nSUCCESS: Hierarchy Anim Transfer Complete " + $counterg + "/" + $sizerg);
+
+        }//end of loop through all hiers
+    }//end of if somethign selected
+    else
+    {
+        print "\n\nFAIL: Please select at least 2 Objects\n\n";
+    }
+}//end of global proc

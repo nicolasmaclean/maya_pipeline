@@ -20,6 +20,7 @@
 # ----------------------------------------------------------------------------- IMPORTS --#
 
 # Built-In
+import os
 
 # Third Party
 
@@ -39,8 +40,9 @@ from haymaker import widgets
 
 class AssetThumbnail(widgets.Label):
     def __init__(self, entry):
-        super().__init__('')
-        # todo: set image
+        self.path_thumbnail = os.path.expanduser(entry.path_thumbnail)
+        super().__init__(self.path_thumbnail, is_path=True, width=150)
+        self.setFixedSize(150, 150)
 
     def mousePressEvent(self, event):
         print('hi')
@@ -72,12 +74,15 @@ class AssetLibrary(widgets.Dialog):
         wrapper_grid = widgets.Widget()
         grid = widgets.GridLayout(wrapper_grid)
         scroll.setWidget(wrapper_grid)
+        entry = CatalogEntry(
+            'temp',
+            r'C:\Users\Nick\Box\Capstone_Uploads\13_Tech\haymaker\resources\full/'
+            'file_not_found.png'
+        )
 
         for r in range(5):
             for c in range(3):
-                lbl = AssetThumbnail('')
-                # lbl = widgets.Label('file_not_found.png', resolution='150')
-                lbl.setMinimumSize(150, 150)
+                lbl = AssetThumbnail(entry)
                 grid.addWidget(lbl, r, c)
 
         # button to reference asset

@@ -24,8 +24,8 @@ import os
 # Third Party
 from maya.api.OpenMaya import MSceneMessage
 import maya.cmds as cmds
-import maya
 import maya.mel as mel
+import maya
 
 # Internal
 from haymaker.log import log, Level

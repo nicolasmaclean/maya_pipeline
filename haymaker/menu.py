@@ -58,6 +58,7 @@ def create_menu():
     # Populate menu
     create_general(menu)
     create_surfacing(menu)
+    create_animation(menu)
 
 
 def _add_item(parent, label, command):
@@ -80,6 +81,15 @@ def create_surfacing(parent):
     _add_item(
         parent, 'Fix Texture Color Spaces', 'from haymaker.maya import '
         'fix_selected_color_mode; fix_selected_color_mode()'
+    )
+
+
+def create_animation(parent):
+    cmds.menuItem(parent=parent, divider=True, dividerLabel='Animation')
+
+    _add_item(
+        parent, 'Transfer Animation',
+        'from haymaker.vendor.anim_transfer.runner import open_gui; open_gui()'
     )
 
 

@@ -23,6 +23,9 @@ import os.path
 # Third Party
 from PySide2 import QtWidgets, QtCore, QtGui
 
+# Internal
+from haymaker.log import log, Level
+
 #----------------------------------------------------------------------------------------#
 #------------------------------------------------------------------------------- ENUMS --#
 
@@ -106,7 +109,7 @@ class Dialog(QtWidgets.QDialog):
             if os.path.isfile(icon_path):
                 self.setWindowIcon(QtGui.QIcon(icon_path))
             else:
-                print(f'ERROR: Unable to find icon at {icon_path}')
+                log(f'Unable to find icon at {icon_path}', Level.ERROR)
 
         # config the help and close button
         self.setWindowFlag(QtCore.Qt.WindowContextHelpButtonHint, False)
@@ -121,7 +124,7 @@ class Dialog(QtWidgets.QDialog):
         elif self.window_mode == WindowMode.Exec:
             self.exec_()
         else:
-            print(f'ERROR: unknown window mode {self.window_mode}')
+            log(f'unknown window mode {self.window_mode}', Level.ERROR)
 
 
 class NotifyUser(Dialog):
@@ -267,27 +270,38 @@ class Button(QtWidgets.QPushButton):
 
 
 class Label(QtWidgets.QLabel):
-    def __init__(self, text, parent=None, stylesheet=None, resolution=None):
+    def __init__(self, text, parent=None, stylesheet=None, resolution=None, is_path=None,
+                 width=None):
         self.pixel_map = None
         self.resolution = resolution
-        if not resolution:
+        self.is_path = is_path
+        if not resolution and not is_path:
             set_parent(parent, self, super(), text=text)
         else:
             set_parent(parent, self, super())
-            self.set_image(text)
+            self.set_image(text, width=width)
         if stylesheet:
             self.setStyleSheet(stylesheet)
 
-    def set_image(self, name, resolution=None):
+    def set_image(self, name, resolution=None, is_path=None, width=None):
+        if is_path:
+            self.is_path = is_path
         if resolution:
             self.resolution = resolution
 
-        path = get_resource_path(name, self.resolution)
-        if not os.path.isfile(path):
-            print(f'ERROR: could not find image for {resolution}/{name}')
+        path_img = name
+        if not self.is_path:
+            path_img = get_resource_path(name, self.resolution)
+
+        if not os.path.isfile(path_img):
+            log(f'could not find image at {path_img}', Level.ERROR)
+            self.pixel_map = None
+            self.setPixmap(self.pixel_map)
             return None
 
-        self.pixel_map = QtGui.QPixmap(path)
+        self.pixel_map = QtGui.QPixmap(path_img)
+        if width:
+            self.pixel_map = self.pixel_map.scaledToWidth(width)
         self.setPixmap(self.pixel_map)
         return True
 

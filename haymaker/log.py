@@ -71,8 +71,8 @@ def _log_to_console(message, level, trace, width):
     time_str = strftime("%H:%M:%S", localtime())
 
     # noinspection PyTypeChecker
-    indent = ''.join([' ' for _ in level.value]) + '    '
     s = f'{time_str}  [{level.value.upper()}]  '
+    indent = ''.join([' ' for _ in s])
     lines = []
 
     # wrap lines to fit width
@@ -97,7 +97,7 @@ def _log_to_console(message, level, trace, width):
         context = frame['context']
         print(f'  File "{file}", line {line}, in {function}')
         if context:
-            print(context)
+            print(f'    {context.lstrip()}')
 
 
 def _log_to_file(message, level, trace):
