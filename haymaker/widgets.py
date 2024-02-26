@@ -17,30 +17,14 @@
 # ----------------------------------------------------------------------------- IMPORTS --#
 
 # Built-In
-from enum import Enum
 import os.path
 
 # Third Party
 from PySide2 import QtWidgets, QtCore, QtGui
 
 # Internal
+from haymaker.enums import ResultType, WindowMode
 from haymaker.log import log, Level
-
-#----------------------------------------------------------------------------------------#
-#------------------------------------------------------------------------------- ENUMS --#
-
-
-class ResultType(Enum):
-    SUCCESS = 'Success'
-    WARNING = 'Warning'
-    FAILURE = 'Failure'
-
-
-class WindowMode(Enum):
-    Show = 'Show'
-    Modal = 'Modal'
-    Exec = 'Exec'
-
 
 #----------------------------------------------------------------------------------------#
 #--------------------------------------------------------------------------- FUNCTIONS --#

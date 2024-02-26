@@ -57,6 +57,10 @@ def select(objs=None, all=None):
     cmds.select(objs)
 
 
+def get_active_file_path() -> str:
+    return cmds.file(q=True, sceneName=True)
+
+
 #region Color Mode
 def fix_selected_color_mode(notify=True):
     selection = get_selected()

@@ -91,6 +91,10 @@ def create_animation(parent):
         parent, 'Transfer Animation',
         'from haymaker.vendor.anim_transfer.runner import open_gui; open_gui()'
     )
+    _add_item(
+        parent, 'Publish Animation',
+        'from haymaker.publisher import publish_animation; publish_animation()'
+    )
 
 
 #----------------------------------------------------------------------------------------#
@@ -98,4 +102,4 @@ def create_animation(parent):
 
 
 create_menu()
-hook_startup()
+# hook_startup()
