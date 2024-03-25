@@ -11,14 +11,13 @@
 :synopsis:
     Basic logger with minimal formatting.
 """
-import json
-import string
 #----------------------------------------------------------------------------------------#
 #----------------------------------------------------------------------------- IMPORTS --#
 
 # Built-In
 from enum import Enum
 import inspect
+import json
 import os
 import sys
 from time import localtime, strftime

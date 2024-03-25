@@ -27,6 +27,13 @@ from haymaker.enums import ResultType, WindowMode
 from haymaker.log import log, Level
 
 #----------------------------------------------------------------------------------------#
+#----------------------------------------------------------------------------- GLOBALS --#
+
+
+_tray_icon: QtWidgets.QSystemTrayIcon = None
+
+
+#----------------------------------------------------------------------------------------#
 #--------------------------------------------------------------------------- FUNCTIONS --#
 
 
@@ -49,6 +56,66 @@ def get_resource_path(name, resolution='full'):
 
 def get_app():
     return QtWidgets.QApplication()
+
+
+def get_tray_icon():
+    """
+    Lazy loads the system tray icon. Can be used to send notifications to the user.
+    :return: QtWidgets.QSystemTrayIcon
+    """
+    global _tray_icon
+    return _tray_icon if _tray_icon else create_tray()
+
+
+def send_system_notification(title, message, icon=None, duration=100):
+    """
+    Sends a message to the user through the OS' notification system using QSystemTrayIcon.
+
+    :param title: notification title
+    :type: str
+
+    :param message: notification message
+    :type: str
+
+    :param icon: icon to show on the left side of the notification.
+    :type: QtGui.QIcon or QtWidgets.QSystemTrayIcon.MessageIcon
+
+    :param duration: amount of time to show notification unless closed early by user.
+    :type: int (msecs)
+    """
+    path_icon = None
+    if not icon:
+        icon = QtWidgets.QSystemTrayIcon.MessageIcon.NoIcon
+
+    elif icon == ResultType.FAILURE:
+        path_icon = get_resource_path('cancel_icon.png', '150')
+    elif icon == ResultType.WARNING:
+        path_icon = get_resource_path('warning_icon.png', '150')
+    elif icon == ResultType.SUCCESS:
+        path_icon = get_resource_path('accept_icon.png', '150')
+    if path_icon:
+        icon = QtGui.QIcon(path_icon)
+
+    tray_icon = get_tray_icon()
+    tray_icon.showMessage(title, message, icon, duration)
+
+
+def create_tray():
+    """
+    Creates a tray icon (the little icon on your task bar) for our project.
+    :return: QtWidgets.QSystemTrayIcon
+    """
+    # make the icon
+    global _tray_icon
+    _tray_icon = QtWidgets.QSystemTrayIcon()
+
+    # show icon
+    path_icon = get_resource_path('so_much_win.png', '250')
+    icon = QtGui.QIcon(path_icon)
+    _tray_icon.setIcon(icon)
+    _tray_icon.setVisible(True)
+
+    return _tray_icon
 
 
 def run_app(app):

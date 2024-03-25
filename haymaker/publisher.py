@@ -17,23 +17,28 @@
 
 # Built-In
 import os.path
+import shutil
+import tempfile
 
 # Third Party
 import maya.cmds as cmds
-import maya.mel as mel
 
 # Internal
 from haymaker.enums import ResultType
-from haymaker.maya import get_selected, get_active_file_path, select
+from haymaker.maya import get_selected, get_active_file_path
 from haymaker.widgets import NotifyUser
-from haymaker.log import log, Level
+from haymaker.log import log
+from haymaker.maya import MayabatchExecuter
 
 #----------------------------------------------------------------------------------------#
 #--------------------------------------------------------------------------- FUNCTIONS --#
 
 
-def publish_animation():
-    # get objects to publish
+def publish_animation_in_background():
+    """
+    Starts a mayabatch to publish the animation.
+    """
+    # don't bother starting if nothing is selected
     selected = get_selected()
     if not selected:
         NotifyUser(
@@ -43,12 +48,15 @@ def publish_animation():
         )
         return None
 
-    # calculate publish directory
+    # make a copy of the current animation file that will be the publish file
+    file_copy, path_copy = tempfile.mkstemp(suffix='.ma')
+    os.close(file_copy)
     path_active_file = get_active_file_path()
-    name = os.path.basename(path_active_file).split('.')[0]
-    dir_publish = os.path.expanduser(f'~/Box/Capstone_Uploads/07_Animation/Published/{name}')
+    shutil.copy(path_active_file, path_copy)
 
     # make next version folder
+    name = os.path.basename(path_active_file).split('.')[0]
+    dir_publish = os.path.expanduser(f'~/Box/Capstone_Uploads/07_Animation/Published/{name}')
     version = 0
     if os.path.isdir(dir_publish):
         with os.scandir(dir_publish) as it:
@@ -61,51 +69,107 @@ def publish_animation():
                         version = version_entry
                 except ValueError:
                     continue
-    else:
-        os.makedirs(dir_publish, exist_ok=True)
     version += 1
     dir_publish = os.path.join(dir_publish, f'{version:03}')
     os.makedirs(dir_publish, exist_ok=True)
 
-    # get frame range
-    start_frame = cmds.playbackOptions(q=True, animationStartTime=True)
-    end_frame = cmds.playbackOptions(q=True, animationEndTime=True)
+    # create a status file
+    with open(os.path.join(dir_publish, 'log.txt'), 'w') as file:
+        file.write(f'Preparing publish for...\n'
+                   f'\t{",".join(selected)}\n')
 
-    # set fbx export settings
-    mel.eval('FBXResetExport')
-    mel.eval('FBXExportAnimationOnly -v 0')
-    mel.eval('FBXExportBakeComplexAnimation -v 1')
-    mel.eval('FBXExportBakeComplexStart -v %d' % start_frame)
-    mel.eval('FBXExportBakeComplexEnd -v %d' % end_frame)
-    mel.eval('FBXExportBakeResampleAnimation -v 0')
-    mel.eval('FBXExportSplitAnimationIntoTakes -c')
-    # mel.eval(f'FBXExportSplitAnimationIntoTakes - v \"tata\" {start_frame} {end_frame}')
+        # process the file and publish it
+        path_final = os.path.join(dir_publish, f'{name}.ma').replace('\\', '/')
+        py_cmd = (f'from haymaker.publisher import _publish_animation; '
+                  f'_publish_animation("{selected}", "{path_final}")')
+        exe = MayabatchExecuter('Publish - Animation')
+        process = exe.run(path_maya_file=path_copy, command=py_cmd)
 
-    # Turn off the dialog box as we don't want to see it for every asset.
-    mel.eval("FBXProperty Export|AdvOptGrp|UI|ShowWarningsManager -v 0")
+        # check if process started
+        if process:
+            file.write(f'Started publishing...\n'
+                       f'\t{py_cmd}\n')
+            NotifyUser(
+                title='Publish - Animation',
+                message='Animation publish has successfully started in the background.'
+            )
+        else:
+            file.write(f'Failed to start background process\n'
+                       f'\t{py_cmd}\n')
+            NotifyUser(
+                title='Publish - Animation',
+                message='Animation publish failed to start.'
+            )
 
-    # publish!
-    count = 0
-    for obj in selected:
-        # make sure the export object is a mesh
-        if cmds.objectType(obj) != "transform":
-            log(f'{obj} is not a transform. Not going to publish it.', Level.WARN)
-            continue
+    return bool(process)
 
-        # select the specific object, then export selection
-        # also remove the namespace from the object, if present
-        select(obj)
-        obj = obj.split(':')[0]
-        path_publish = os.path.join(dir_publish, obj)
-        cmds.file(path_publish, force=True, options="v=0;", typ="FBX export", es=True)
-        count += 1
 
-    # restore selection
-    select(selected)
+def _publish_animation(objs, path_publish):
+    """
+    Publishes this file for animation. Strips file to objs and bakes references.
 
-    # publish was successful
-    NotifyUser(
-        'Animation Publisher',
-        f'{count} asset(s) successfully published.'
-    )
-    return True
+    :param objs: objects to preserve
+    :type: [str]
+
+    :param path_publish: final path the active maya file should be saved to
+    :type: str
+    """
+    with open(os.path.join(os.path.dirname(path_publish), 'log.txt'), 'a') as file:
+        # unpack stringified list
+        if isinstance(objs, str):
+            objs = objs[1:-1].replace('\'', '').split(',')
+            file.write(f'Unpacked stringified list\n')
+
+        # include all user-cameras in the publish
+        cameras = [cmds.listRelatives(c, p=True)[0]
+                   for c in cmds.ls(type='camera')
+                   if not cmds.camera(c, q=True, sc=True)]
+        objs += cameras
+
+        # delete everything but objects and their dependencies
+        # an additional pass is done to remove file references too
+        cmds.select(all=True)
+        cmds.select(objs, deselect=True)
+        cmds.select(objs, deselect=True, allDependencyNodes=True)
+        cmds.delete()
+        file.write('Stripped objects from scene\n')
+
+        # import references (and sub-references)
+        references = set()
+        for obj in objs:
+            try:
+                node = cmds.referenceQuery(obj, referenceNode=True, topReference=True)
+            except RuntimeError:
+                pass
+            references.add(cmds.referenceQuery(node, filename=True))
+
+        path_references: set[str] = set(cmds.file(q=True, reference=True))
+        while len(path_references) > 0:
+            path_reference = path_references.pop()
+
+            # remove non-dependent and unloaded references
+            nondependent = path_reference not in references
+            unloaded = not cmds.referenceQuery(path_reference, isLoaded=True)
+            if nondependent or unloaded:
+                cmds.file(path_reference, removeReference=True)
+                log(f'Removed reference to {path_reference}')
+                continue
+
+            # ignore unloaded references
+            if not cmds.referenceQuery(path_reference, isLoaded=True):
+                continue
+
+            # import reference
+            cmds.file(path_reference, importReference=True)
+            log(f'Import reference to {path_reference}')
+
+            # make sure to collect sub-references
+            path_references = path_references.union(cmds.file(q=True, reference=True))
+        file.write('Imported references\n')
+
+        # move the file to the final publish location
+        path_temp = get_active_file_path()
+        cmds.file(rename=path_publish)
+        cmds.file(save=True)
+        os.remove(path_temp)
+        file.write(f'Moved publish file to {path_publish}\n')

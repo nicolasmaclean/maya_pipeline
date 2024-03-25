@@ -19,17 +19,22 @@
 #----------------------------------------------------------------------------- IMPORTS --#
 
 # Built-In
+from dataclasses import dataclass
 import os
+from tempfile import NamedTemporaryFile
 
 # Third Party
+# noinspection PyUnresolvedReferences
 from maya.api.OpenMaya import MSceneMessage
+# noinspection PyUnresolvedReferences
 import maya.cmds as cmds
+# noinspection PyUnresolvedReferences
 import maya.mel as mel
-import maya
 
 # Internal
+from haymaker.app_exe import notify_system, Process, AppExecuter
 from haymaker.log import log, Level
-from haymaker import widgets
+import haymaker.widgets as widgets
 
 #----------------------------------------------------------------------------------------#
 #--------------------------------------------------------------------------- FUNCTIONS --#
@@ -160,9 +165,9 @@ def get_foolproof_file_path(path):
     path_og = os.path.normpath(path).replace('\\', '/')
 
     path_new = os.path.normpath(path).replace('\\', '/')
-    path_new = path.replace(path_user, '%USERPROFILE%')
+    path_new = path_new.replace(path_user, '%USERPROFILE%')
 
-    return (path_og, path_new)
+    return path_og, path_new
 
 
 def foolproof_user_references(*args):
@@ -236,6 +241,135 @@ def foolproof_file_node(node):
     cmds.setAttr(attr, path_new, type='string')
     log(f'updated {node} to a user path ({path_new})')
     return True
+#endregion
+
+
+#region App Executer
+@dataclass
+class MayaProcess(Process):
+    """
+    QProcess wrapper that overrides the subprocess errors with Maya's python errors.
+    """
+    stdout: int = None
+    stderr: int = None
+
+    path_errors: str = None
+
+    def _get_result(self):
+        result, errors = super()._get_result()
+
+        # override errors with output file
+        # this is because errors in python code executed in the mayabatch will not be
+        # returned as errors of the subprocess, so we have to manually extract them
+        with open(self.path_errors, 'r') as file:
+            errors += file.read()
+        os.remove(self.path_errors)
+
+        return result, errors
+
+
+class MayabatchExecuter(AppExecuter):
+    """
+    Easily run mayabatch in the background and setup notifications.
+
+    exec = MayabatchExecuter('Example Task')
+    exec.run(path_maya_file=path_file, func=('utils', 'func'))
+    """
+    NAME_EXE = 'mayabatch.exe'
+
+    def __init__(self, name=None, name_exe=None, path_exe=None):
+        super().__init__(name, name_exe, path_exe)
+        self._path_errors = None
+
+    @classmethod
+    def _get_exe_path(cls, name_exe: str) -> str:
+        path = super()._get_exe_path(name_exe)
+
+        # try hard-coded path to mayabatch, if the PATH variable has not been injected
+        # this should only be the case when this py interpreter is not Maya's embedded one
+        return path if path else 'C:/Program Files/Autodesk/Maya2023/bin/mayabatch.exe'
+
+    def _create_process(self, args, on_finish) -> Process:
+        return MayaProcess(self.NAME, self.path_exe, args, on_finish,
+                           path_errors=self._path_errors)
+
+    def run(self, on_finish=notify_system, path_maya_file: str = None, command: str = None,
+            func = None, *args, **kwargs):
+        """
+        Opens mayabatch.exe and runs the provided python code. One of command, path_py,
+        or func must be provided.
+
+        :param on_finish: callback to perform upon execution completion
+        :type: func(ProcessResult) -> None
+
+        :param path_maya_file: (optional) maya file to work with
+        :type: str
+
+        :param command: string of python code to run. should be 1 line (with ;'s)
+        :type: str
+
+        :param func: a python function to run
+        :type: (absolute path to py module, name of function)
+
+        :param args:
+        :param kwargs:
+
+        :return: the resulting subprocess
+        :type: Popen
+        """
+        # if given a maya file, validate it
+        if path_maya_file and not os.path.isfile(path_maya_file):
+            return None
+        path_maya_file = path_maya_file.replace('\\', '/')
+
+        # prepare python code to run
+        if func:
+            command = f'from {func[0]} import {func[1]}; {func[1]}()'
+        if not command:
+            return None
+
+        # make a file to write errors to
+        # python errors in mayabatch are sent to stdout, so we need to do some trickery
+        # to extract errors from it
+        file_errors = NamedTemporaryFile(delete=False)
+        self._path_errors = path_errors = file_errors.name
+        file_errors.close()
+
+        # write python command to a temp file for mayabatch to run
+        #   this will help prevent issues caused by running arbitrary py code in mel
+        #   inject cleanup code and environment setup
+        with NamedTemporaryFile('w', delete=False) as file_py:
+            path_py = file_py.name
+            file_py.write('\n'.join([
+                f'try:',
+                f'    {command}',
+                f'except Exception as e:',
+                f'    import traceback',
+                f'    with open(r\'{path_errors}\', \'w\') as file:',
+                f'        file.write(traceback.format_exc())',
+                f'finally:',
+                f'    import os',
+                f'    os.remove(r\'{path_py}\')',
+            ]))
+
+        # run mayabatch!
+        path_py = path_py.replace('\\', '\\\\')
+        mel = f'python(\"exec(open(r\'{path_py}\', \'r\').read())\")'
+        if path_maya_file:
+            process, started = super().run(on_finish=on_finish, file=path_maya_file,
+                                           command=mel, *args, *kwargs)
+        else:
+            process, started = super().run(on_finish=on_finish, command=mel, *args, *kwargs)
+
+        # manually clean up temp files, failed processes probably won't be able to do this
+        if not started:
+            if os.path.isfile(path_py):
+                os.remove(path_py)
+            if os.path.isfile(path_errors):
+                os.remove(path_errors)
+            return None
+
+        return process, started
 #endregion
 
 
