@@ -66,6 +66,25 @@ def get_active_file_path() -> str:
     return cmds.file(q=True, sceneName=True)
 
 
+def delete_unknown_nodes():
+    """
+    This function removes all unknown nodes from the maya scene.
+
+    :return: Nodes removed, otherwise None
+    :type: list
+    """
+    nodes = cmds.ls(type='unknown')
+    cmds.delete(nodes)
+    if nodes:
+        print('UNKNOWN NODES DELETED')
+        for node in nodes:
+            print(f'\t{node}')
+        return nodes
+
+    print('No unknown nodes to delete')
+    return None
+
+
 #region Color Mode
 def fix_selected_color_mode(notify=True):
     selection = get_selected()

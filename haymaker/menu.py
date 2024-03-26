@@ -71,6 +71,8 @@ def create_general(parent):
               'from haymaker.utils import version_file; version_file()')
     _add_item(parent, 'Foolproof File paths',
               'from haymaker.maya import foolproof_paths; foolproof_paths()')
+    _add_item(parent, 'Delete Unknown Nodes',
+              'from haymaker.maya import delete_unknown_nodes; delete_unknown_nodes()')
     _add_item(parent, 'Submit Log',
               'from haymaker.log import submit_log; submit_log()')
 
