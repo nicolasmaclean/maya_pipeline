@@ -260,6 +260,15 @@ def foolproof_file_node(node):
     cmds.setAttr(attr, path_new, type='string')
     log(f'updated {node} to a user path ({path_new})')
     return True
+
+
+def fix_other_users_paths(path_user):
+    for node in cmds.ls(type='file'):
+        path = cmds.getAttr(f'{node}.fileTextureName')
+        path_new = path.replace(path_user, '%USERPROFILE%')
+        if path != path_new:
+            cmds.setAttr(f'{node}.fileTextureName', path_new, type='string')
+
 #endregion
 
 
