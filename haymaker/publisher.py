@@ -140,7 +140,7 @@ def _publish_animation(objs, path_publish):
             try:
                 node = cmds.referenceQuery(obj, referenceNode=True, topReference=True)
             except RuntimeError:
-                pass
+                continue
             references.add(cmds.referenceQuery(node, filename=True))
 
         path_references: set[str] = set(cmds.file(q=True, reference=True))
