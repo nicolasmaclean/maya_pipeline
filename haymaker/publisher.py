@@ -176,7 +176,7 @@ def _bg_publish_animation(path_publish):
                    if not cmds.camera(c, q=True, sc=True)]
 
         # delete all non-references and cameras
-        cmds.select(all=True)
+        cmds.select(cmds.ls(type='transform'))
         cmds.select(cameras, deselect=True)
         cmds.delete()
         file.write('Stripped objects from scene\n')
@@ -184,12 +184,19 @@ def _bg_publish_animation(path_publish):
         # remove unnecessary references and import all the other ones
         path_rigging = os.path.expanduser('~/Box/Capstone_Uploads/04_Rigging').replace('\\', '/')
         for node in cmds.ls(references=True):
+            try:
+                path = cmds.referenceQuery(node, filename=True)
+            except RuntimeError:
+                # the reference node doesn't reference a file, just ignore it
+                # I have no idea how this happens 🤷‍
+                # ideally, we delete the node, but I can't figure out how
+                continue
+
             # if this is a nested reference, just ignore it
             is_child = cmds.referenceQuery(node, referenceNode=True, parent=True)
             if is_child:
                 continue
 
-            path = cmds.referenceQuery(node, filename=True)
             loaded = cmds.referenceQuery(path, isLoaded=True)
             is_rig = path.startswith(path_rigging)
             has_cam = False  # TODO:
