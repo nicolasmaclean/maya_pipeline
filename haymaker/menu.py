@@ -95,7 +95,7 @@ def create_animation(parent):
     )
     _add_item(
         parent, 'Publish Animation',
-        'from haymaker.publisher import publish_animation_in_background; publish_animation_in_background()'
+        'from haymaker.publisher import publish_animation; publish_animation()'
     )
 
 
