@@ -37,6 +37,17 @@ _tray_icon: QtWidgets.QSystemTrayIcon = None
 #--------------------------------------------------------------------------- FUNCTIONS --#
 
 
+def get_save_file(filter='', caption='', parent=None):
+    return QtWidgets.QFileDialog.getSaveFileName(
+        filter=filter, caption=caption, parent=parent
+    )[0]
+
+
+def get_open_file(filter='', caption='', parent=None):
+    return QtWidgets.QFileDialog.getOpenFileName(
+        filter=filter, caption=caption, parent=parent
+    )[0]
+
 def set_parent(parent, child, child_super, **kwargs):
     if isinstance(parent, QtWidgets.QLayout):
         child_super.__init__(**kwargs)

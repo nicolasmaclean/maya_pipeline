@@ -84,6 +84,14 @@ def create_surfacing(parent):
         parent, 'Fix Texture Color Spaces', 'from haymaker.maya import '
         'fix_selected_color_mode; fix_selected_color_mode()'
     )
+    _add_item(
+        parent, 'Export Material Assignments', 'from haymaker.guis.material_assignments '
+        'import save_material_assignments; save_material_assignments()'
+    )
+    _add_item(
+        parent, 'Import Material Assignments', 'from haymaker.guis.material_assignments '
+        'import load_material_assignments; load_material_assignments()'
+    )
 
 
 def create_animation(parent):

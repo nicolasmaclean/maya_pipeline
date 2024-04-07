@@ -58,6 +58,26 @@ def read_json(path: str, verbose: bool = True):
     return data
 
 
+def write_json(path: str, data: dict, verbose: bool = True):
+    try:
+        str_data = json.dumps(data, indent=2, sort_keys=True)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'w') as file:
+            file.write(str_data)
+
+    except OSError:
+        if verbose:
+            log(f'Unable to open file for writing json at {path}', level=Level.ERROR)
+        return None
+
+    except TypeError:
+        if verbose:
+            log(f'Could not encode data with default JSON encoder.', level=Level.ERROR)
+        return None
+
+    return str_data
+
+
 def normalize_path(path: str):
     return os.path.normpath(path).replace('\\', '/')
 
