@@ -1,0 +1,21 @@
+{
+    "company": "Animation Lab",
+    "version": 1,
+    "user": {
+        "name": "nim190001",
+        "home": "C:/Users/Nick/Documents"
+    },
+
+    "dccs": {
+        "maya": {
+            "path": "C:/Program Files/Autodesk/Maya2023/bin/maya.exe",
+            "path_batch": "C:/Program Files/Autodesk/Maya2023/bin/mayabatch.exe"
+        },
+        "painter": {
+            "path": "C:/Program Files/Adobe/Adobe Substance 3D Painter"
+        },
+        "unreal": {
+            "path": "C:/Program Files/Epic Games/UE_5.2/Engine/Binaries/Win64/UnrealEditor.exe"
+        }
+    },
+}
