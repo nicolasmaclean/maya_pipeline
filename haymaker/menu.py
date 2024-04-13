@@ -85,11 +85,11 @@ def create_surfacing(parent):
         'fix_selected_color_mode; fix_selected_color_mode()'
     )
     _add_item(
-        parent, 'Export Material Assignments', 'from haymaker.guis.material_assignments '
+        parent, 'Export Material Assignments', 'from haymaker.guis.material_assignment '
         'import save_material_assignments; save_material_assignments()'
     )
     _add_item(
-        parent, 'Import Material Assignments', 'from haymaker.guis.material_assignments '
+        parent, 'Import Material Assignments', 'from haymaker.guis.material_assignment '
         'import load_material_assignments; load_material_assignments()'
     )
 
