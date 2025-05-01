@@ -20,7 +20,6 @@ import maya.cmds as cmds
 import maya.mel as mel
 
 # Internal
-from haymaker.log import log
 from haymaker.maya import add_callback_to_reference_create, foolproof_user_references
 
 #----------------------------------------------------------------------------------------#
@@ -57,8 +56,8 @@ def create_menu():
 
     # Populate menu
     create_general(menu)
-    create_surfacing(menu)
-    create_animation(menu)
+    # create_surfacing(menu)
+    # create_animation(menu)
 
 
 def _add_item(parent, label, command):

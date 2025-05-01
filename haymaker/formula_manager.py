@@ -46,11 +46,11 @@ def _read_json(path: str, verbose: bool = True):
             data = json.load(file)
     except FileNotFoundError:
         if verbose:
-            log(f'Could not find json file at {path}', level=Level.ERROR)
+            print(f'Could not find json file at {path}')
         return None
     except json.decoder.JSONDecodeError as e:
         if verbose:
-            log(f'Unable to parse json file at {path} :: {e}', level=Level.ERROR)
+            print(f'Unable to parse json file at {path} :: {e}')
         return None
 
     return data
@@ -89,13 +89,13 @@ class ReservedVariable(Enum):
 
 class Drive(ReservedVariable):
     DEFAULT = 'drive'
-    BOX = '~/Box/Capstone_Uploads'
+    BOX = '~/Box/Dorya (Tekken Reimagined)'
 
 
 class Disk(ReservedVariable):
     DEFAULT = 'disk'
-    CONFIG = '|drive|/13_Tech/config'
-    CODE = '|drive|/13_Tech/haymaker'
+    CONFIG = '|drive|/Tech/config'
+    CODE = '|drive|/Tech/haymaker'
 
 
 #----------------------------------------------------------------------------------------#
@@ -173,10 +173,10 @@ class FormulaRepo(object):
             for formula in config_data['formulas']:
                 repo._add_formula(formula, config_data['formulas'][formula])
         except KeyError:
-            # log(f'{path} seems to be missing formula data.', level=Level.WARN)
+            print(f'{path} seems to be missing formula data.')
             return None
 
-        # log(f'Read formulas from {path}')
+        # print(f'Read formulas from {path}')
         return repo
 
     def get_formula(self, formula_name: str):
@@ -259,11 +259,7 @@ class FormulaRepo(object):
 
 def main():
     repo = FormulaRepo.load()
-    print(repo.eval('asset_library'))
-    print(repo.eval('asset_catalog'))
-    print(repo.eval('asset_catalog', drive=Drive.LOCAL, disk=Disk.STORE))
-    print(repo.eval('asset_library', drive=Drive.LOCAL))
-
+    print(repo.eval('f_log_report'))
 
 
 

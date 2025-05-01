@@ -20,7 +20,10 @@
 import os.path
 
 # Third Party
-from PySide2 import QtWidgets, QtCore, QtGui
+try:
+    from PySide2 import QtWidgets, QtCore, QtGui
+except ImportError:
+    from PySide6 import QtWidgets, QtCore, QtGui
 
 # Internal
 from haymaker.enums import ResultType, WindowMode
