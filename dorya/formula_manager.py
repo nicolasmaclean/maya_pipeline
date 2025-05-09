@@ -21,7 +21,7 @@ import json
 import os
 
 # Internal
-# from haymaker.log import log, Level
+# from dorya.log import log, Level
 
 #----------------------------------------------------------------------------------------#
 #--------------------------------------------------------------------------- FUNCTIONS --#
@@ -95,7 +95,7 @@ class Drive(ReservedVariable):
 class Disk(ReservedVariable):
     DEFAULT = 'disk'
     CONFIG = '|drive|/Tech/config'
-    CODE = '|drive|/Tech/haymaker'
+    CODE = '|drive|/Tech/dorya'
 
 
 #----------------------------------------------------------------------------------------#

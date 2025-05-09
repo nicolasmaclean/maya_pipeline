@@ -23,12 +23,12 @@ import shutil
 # 3rd Party
 try:
     from maya import cmds
-    from haymaker.maya import foolproof_paths
+    from dorya.maya import foolproof_paths
 except ImportError:
     print('WARNING: Cannot import maya.cmds in this environment')
 
 # Internal
-from haymaker.log import log, Level
+from dorya.log import log, Level
 
 #----------------------------------------------------------------------------------------#
 #--------------------------------------------------------------------------- FUNCTIONS --#

@@ -26,8 +26,8 @@ except ImportError:
     from PySide6 import QtWidgets, QtCore, QtGui
 
 # Internal
-from haymaker.enums import ResultType, WindowMode
-from haymaker.log import log, Level
+from dorya.enums import ResultType, WindowMode
+from dorya.log import log, Level
 
 #----------------------------------------------------------------------------------------#
 #----------------------------------------------------------------------------- GLOBALS --#

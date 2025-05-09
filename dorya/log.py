@@ -31,7 +31,7 @@ except ImportError:
     MAYA = False
 
 # Internal
-from haymaker.formula_manager import eval_formula
+from dorya.formula_manager import eval_formula
 
 #----------------------------------------------------------------------------------------#
 #------------------------------------------------------------------------------- ENUMS --#

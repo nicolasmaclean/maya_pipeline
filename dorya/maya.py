@@ -33,9 +33,9 @@ import maya.cmds as cmds
 import maya.mel as mel
 
 # Internal
-# from haymaker.app_exe import notify_system, Process, AppExecuter
-from haymaker.log import log, Level
-import haymaker.widgets as widgets
+# from dorya.app_exe import notify_system, Process, AppExecuter
+from dorya.log import log, Level
+import dorya.widgets as widgets
 
 #----------------------------------------------------------------------------------------#
 #--------------------------------------------------------------------------- FUNCTIONS --#

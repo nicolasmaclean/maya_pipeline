@@ -20,12 +20,12 @@ import maya.cmds as cmds
 import maya.mel as mel
 
 # Internal
-from haymaker.maya import add_callback_to_reference_create, foolproof_user_references
+from dorya.maya import add_callback_to_reference_create, foolproof_user_references
 
 #----------------------------------------------------------------------------------------#
 #----------------------------------------------------------------------------- GLOBALS --#
 
-MENU_NAME = 'Haymaker'
+MENU_NAME = 'Dorya'
 
 #----------------------------------------------------------------------------------------#
 #--------------------------------------------------------------------------- FUNCTIONS --#
@@ -57,38 +57,38 @@ def create_menu():
     # Populate menu
     create_general(menu)
     # create_surfacing(menu)
-    # create_animation(menu)
+    create_animation(menu)
 
 
 def _add_item(parent, label, command):
-    log_injection = f'from haymaker.log import log; log("Menu - {label}"); '
+    log_injection = f'from dorya.log import log; log("Menu - {label}"); '
     cmds.menuItem(parent=parent, label=label, command=log_injection + command)
 
 
 def create_general(parent):
     _add_item(parent, 'Version Current File',
-              'from haymaker.utils import version_file; version_file()')
+              'from dorya.utils import version_file; version_file()')
     _add_item(parent, 'Foolproof File paths',
-              'from haymaker.maya import foolproof_paths; foolproof_paths()')
+              'from dorya.maya import foolproof_paths; foolproof_paths()')
     _add_item(parent, 'Delete Unknown Nodes',
-              'from haymaker.maya import delete_unknown_nodes; delete_unknown_nodes()')
+              'from dorya.maya import delete_unknown_nodes; delete_unknown_nodes()')
     _add_item(parent, 'Submit Log',
-              'from haymaker.log import submit_log; submit_log()')
+              'from dorya.log import submit_log; submit_log()')
 
 
 def create_surfacing(parent):
     cmds.menuItem(parent=parent, divider=True, dividerLabel='Surfacing')
 
     _add_item(
-        parent, 'Fix Texture Color Spaces', 'from haymaker.maya import '
+        parent, 'Fix Texture Color Spaces', 'from dorya.maya import '
         'fix_selected_color_mode; fix_selected_color_mode()'
     )
     _add_item(
-        parent, 'Export Material Assignments', 'from haymaker.guis.material_assignment '
+        parent, 'Export Material Assignments', 'from dorya.guis.material_assignment '
         'import save_material_assignments; save_material_assignments()'
     )
     _add_item(
-        parent, 'Import Material Assignments', 'from haymaker.guis.material_assignment '
+        parent, 'Import Material Assignments', 'from dorya.guis.material_assignment '
         'import load_material_assignments; load_material_assignments()'
     )
 
@@ -98,12 +98,12 @@ def create_animation(parent):
 
     _add_item(
         parent, 'Transfer Animation',
-        'from haymaker.vendor.anim_transfer.runner import open_gui; open_gui()'
+        'from dorya.vendor.anim_transfer.runner import open_gui; open_gui()'
     )
-    _add_item(
-        parent, 'Publish Animation',
-        'from haymaker.publisher import publish_animation; publish_animation()'
-    )
+    # _add_item(
+    #     parent, 'Publish Animation',
+    #     'from dorya.publisher import publish_animation; publish_animation()'
+    # )
 
 
 #----------------------------------------------------------------------------------------#

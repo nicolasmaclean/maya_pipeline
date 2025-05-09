@@ -25,10 +25,10 @@ import tempfile
 import maya.cmds as cmds
 
 # Internal
-from haymaker.maya import get_active_file_path
-from haymaker.widgets import NotifyUser
-from haymaker.log import log, Level
-from haymaker.maya import MayabatchExecuter
+from dorya.maya import get_active_file_path
+from dorya.widgets import NotifyUser
+from dorya.log import log, Level
+from dorya.maya import MayabatchExecuter
 
 #----------------------------------------------------------------------------------------#
 #--------------------------------------------------------------------------- FUNCTIONS --#

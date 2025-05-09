@@ -30,7 +30,7 @@ import shutil
 import maya.mel as mel
 
 # Internal
-from haymaker.log import log
+from dorya.log import log
 
 # ----------------------------------------------------------------------------------------#
 # --------------------------------------------------------------------------- FUNCTIONS --#
