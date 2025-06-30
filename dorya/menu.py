@@ -74,6 +74,8 @@ def create_general(parent):
               'from dorya.maya import delete_unknown_nodes; delete_unknown_nodes()')
     _add_item(parent, 'Submit Log',
               'from dorya.log import submit_log; submit_log()')
+    _add_item(parent, '**For Blaise\'s Eyes Only**',
+              'from dorya.ui.blaise_surprise import BlaiseSurprise; win = BlaiseSurprise()')
 
 
 def create_surfacing(parent):

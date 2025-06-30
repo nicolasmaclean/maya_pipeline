@@ -149,6 +149,7 @@ class Dialog(QtWidgets.QDialog):
     default_position = None
     size_is_fixed = False
     closeable = True
+    stay_on_top = True
     window_mode = WindowMode.Show
 
     def __init__(self, parent=None, init=True, **kwargs):
@@ -179,6 +180,7 @@ class Dialog(QtWidgets.QDialog):
         # config the help and close button
         self.setWindowFlag(QtCore.Qt.WindowContextHelpButtonHint, False)
         self.setWindowFlag(QtCore.Qt.WindowCloseButtonHint, self.closeable)
+        self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint, self.stay_on_top)
 
         # show the dialog
         if self.window_mode == WindowMode.Show:
@@ -375,6 +377,15 @@ class ComboBox(QtWidgets.QComboBox):
     def __init__(self, values, parent=None):
         set_parent(parent, self, super())
         self.addItems(values)
+
+
+class Movie(QtWidgets.QLabel):
+    def __init__(self, path, parent=None):
+        set_parent(parent, self, super())
+
+        self.movie = QtGui.QMovie(path)
+        self.setMovie(self.movie)
+        self.movie.start()
 #endregion
 
 
