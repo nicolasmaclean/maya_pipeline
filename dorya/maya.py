@@ -296,12 +296,15 @@ def foolproof_file_nodes():
     for ref in cmds.ls(type='file'):
         if foolproof_file_node(ref):
             count += 1
+    for ref in cmds.ls(type='aiVolume'):
+        if foolproof_file_node(ref, 'filename'):
+            count += 1
     log(f'Updated {count} file node(s)')
     return count
 
 
-def foolproof_file_node(node):
-    attr = f'{node}.fileTextureName'
+def foolproof_file_node(node, attr_name='fileTextureName'):
+    attr = f'{node}.{attr_name}'
     path_og = cmds.getAttr(attr)
 
     # ignore, file node doesn't point anywhere yet
