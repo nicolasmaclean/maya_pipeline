@@ -363,7 +363,6 @@ class Label(QtWidgets.QLabel):
         if not os.path.isfile(path_img):
             log(f'could not find image at {path_img}', Level.ERROR)
             self.pixel_map = None
-            self.setPixmap(self.pixel_map)
             return None
 
         self.pixel_map = QtGui.QPixmap(path_img)
